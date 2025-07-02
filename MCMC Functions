@@ -1,0 +1,104 @@
+def prior(params):
+    if len(params) == 6:
+        A, B, C, D, E, F = params
+        if -2<C<2 and -2<E<2 and -2<F<2 and A > 0 and B > 0 and D > 0:
+            return True
+        else:
+            return False
+    else:
+        A, B, D, E = params
+        if -2<E<2 and A > 0 and B > 0 and D > 0:
+            return True
+        else:
+            return False
+
+#X est le catalogue
+def _ln_L(params, X, a, b, correction):
+    pop, M, z = np.log(X["n200"]), X["M"], X["zp"]
+    if len(params) == 6:
+        A, B, C, D, E, F = params
+        mean_alpha = A + B*np.log(M/Mp) + C*np.log((1+z)/(1+zp))
+        sigma = D + E*np.log(M/Mp) + F*np.log((1+z)/(1+zp))
+    else:
+        A, B, D, E = params
+        mean_alpha = A + B*np.log(M/Mp)
+        sigma = D + E*np.log(M/Mp)
+    
+    prior_check = prior(params)
+    if not prior_check:
+        return -np.inf
+    
+    sigma = np.clip(sigma, 1e-5, None)
+    #print("sigma max/min :", max(sigma), min(sigma))
+    #log-Vraissemblance
+    erf = lambda x: scipy.special.erf((np.log(x)-mean_alpha)/(sigma*2**0.5))
+    correction = lambda a, b: erf(b)-erf(a)
+    if correction:
+        ln_L = - sum(np.log(sigma*(2*np.pi)**0.5)) - sum(0.5*((pop-mean_alpha)/sigma)**2) - sum(0.5*correction(a, b))
+        return ln_L
+    ln_L = - sum(np.log(sigma*(2*np.pi)**0.5)) - sum(0.5*((pop-mean_alpha)/sigma)**2)
+    return ln_L
+
+def MCMC(richesse_bin, redshift_bin, itt, redshift_params = True, correction = True):
+    a, b = richesse_bin
+    c, d = redshift_bin
+    X = t_amas_match[(t_amas_match["n200"]>a) & (t_amas_match["n200"]<b) & (t_amas_match["zp"]>c) & (t_amas_match["zp"]<d)]
+    if redshift_params:
+        ndim, nwalkers = 6, 25
+    else:
+        ndim, nwalkers = 4, 25
+    p0 = np.random.randn(nwalkers, ndim) # points de départ pour les walkers
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, _ln_L, args=[X, a, b, correction])
+    S = sampler.run_mcmc(p0, itt)
+    sample = sampler.get_chain()
+    
+    list_A, list_B, list_C, list_D, list_E, list_F  = [], [], [], [], [], []
+    if redshift_params:
+        for step in range(len(sample)):
+            list_A.append(np.mean(sample[step, :, 0])) # récupération des paramètres
+            list_B.append(np.mean(sample[step, :, 1]))
+            list_C.append(np.mean(sample[step, :, 2]))
+            list_D.append(np.mean(sample[step, :, 3]))
+            list_E.append(np.mean(sample[step, :, 4]))
+            list_F.append(np.mean(sample[step, :, 5]))    
+    
+        A = np.mean(list_A[len(list_A)//2:])
+        B = np.mean(list_B[len(list_B)//2:])
+        C = np.mean(list_C[len(list_C)//2:])
+        D = np.mean(list_D[len(list_D)//2:])
+        E = np.mean(list_E[len(list_E)//2:])
+        F = np.mean(list_F[len(list_F)//2:])
+    
+        std_A = np.std(list_A[len(list_A)//2:])
+        std_B = np.std(list_B[len(list_B)//2:])
+        std_C = np.std(list_C[len(list_C)//2:])
+        std_D = np.std(list_D[len(list_D)//2:])
+        std_E = np.std(list_E[len(list_E)//2:])
+        std_F = np.std(list_F[len(list_F)//2:])
+
+        res = {}
+        res['mean'] = (A, B, C, D, E, F)
+        res['std'] = (std_A, std_B, std_C, std_D, std_E, std_F)
+        res['list'] = (list_A, list_B, list_C, list_D, list_E, list_F)
+    else:
+        for step in range(len(sample)):
+            list_A.append(np.mean(sample[step, :, 0])) # récupération des paramètres
+            list_B.append(np.mean(sample[step, :, 1]))
+            list_D.append(np.mean(sample[step, :, 2]))
+            list_E.append(np.mean(sample[step, :, 3]))    
+    
+        A = np.mean(list_A[len(list_A)//2:])
+        B = np.mean(list_B[len(list_B)//2:])
+        D = np.mean(list_D[len(list_D)//2:])
+        E = np.mean(list_E[len(list_E)//2:])
+    
+        std_A = np.std(list_A[len(list_A)//2:])
+        std_B = np.std(list_B[len(list_B)//2:])
+        std_D = np.std(list_D[len(list_D)//2:])
+        std_E = np.std(list_E[len(list_E)//2:])
+
+        res = {}
+        res['mean'] = (A, B, D, E)
+        res['std'] = (std_A, std_B, std_D, std_E)
+        res['list'] = (list_A, list_B, list_D, list_E)
+    return res
