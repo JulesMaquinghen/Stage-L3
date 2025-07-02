@@ -5,8 +5,6 @@ def reg_lin_analysis(richesse_bin, redshift_bin):
     a, b = richesse_bin
     c, d = redshift_bin
     catalog = t_amas_match[(t_amas_match["n200"]>a) & (t_amas_match["n200"]<b) & (t_amas_match["zp"]>c) & (t_amas_match["zp"]<d)]
-
-    print(len(catalog))
     
     #Bins dans catalog pour paramétrer std(M)
     list_bin_M = []   
@@ -48,8 +46,8 @@ def reg_lin_analysis(richesse_bin, redshift_bin):
 
 # Shows a scatter of the binned catalog used by reg_lin_analysis and plots the regression of the mean made by reg_lin_analysis over it.
 def show_mean_reg(res, xscale = 'log', yscale = 'log', 
-                          label_data = 'data', label_reg = 'Modèle paramétré', title = '', xlabel = r'$M/ M_p$', ylabel = r'$\lambda$',
-                          data_color = 'b', reg_color = 'r', marker = '+'):
+                label_data = 'data', label_reg = 'Modèle paramétré', title = '', xlabel = r'$M/ M_p$', ylabel = r'$\lambda$',
+                data_color = 'b', reg_color = 'r', marker = '+'):
 
     if data_color == reg_color:
         print("WARNING : COLOR CHOICE MAY ALTER READABILITY")
@@ -72,8 +70,9 @@ def show_mean_reg(res, xscale = 'log', yscale = 'log',
     plt.show()
 
 # shows a scatter of the std of each mass bin and plots the linear regression made by reg_lin_analysis
-def show_std_reg(res, label_std = r'$\sigma(M/M_p)$', label_reg = 'Linear regression', title = '', xlabel = r'$ln(M/ M_p)$', ylabel = r'$\sigma$',
-                          std_color = 'k', reg_color = 'r'):
+def show_std_reg(res, label_std = r'$\sigma(M/M_p)$', label_reg = 'Linear regression', title = '',
+                xlabel igma$',= r'$ln(M/ M_p)$', ylabel = r'$\s
+                std_color = 'k', reg_color = 'r'):
     A, B, D, E = res['params']
     std_list = res['std']
     M_Mp_bin_milieu = res['bins_M_std']
@@ -89,9 +88,10 @@ def show_std_reg(res, label_std = r'$\sigma(M/M_p)$', label_reg = 'Linear regres
 
 # Shows 2 scatters : the binned catalog used by reg_lin_analysis and a distribution of clusters based on the regressions made by reg_lin_analysis.
 # Plus, it shows the mean regression
-def show_catalog_vs_model(res, xscale = 'log', yscale = 'log', 
-                          label_data = 'data', label_model = 'model', label_reg = 'Modèle paramétré', title = '', xlabel = r'$\lambda$', ylabel = r'$\lambda$',
-                          data_color = 'r', model_color = 'b', reg_color = 'r'):
+def show_catalog_vs_model(res, xscale = 'log', yscale = 'log' 
+                          ,label_data = 'data', label_model = 'model', label_reg = 'Modèle paramétré', title = '' 
+                          ,xlabel = r'$\lambda$', ylabel = r'$\lambda$,
+                          ,data_color = 'r', model_color = 'b', reg_color = 'r'):
 
     if data_color == model_color or model_color == reg_color:
         print("WARNING : COLOR CHOICE MAY ALTER READABILITY")
