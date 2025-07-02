@@ -1,0 +1,50 @@
+###################################################
+import emcee
+import numpy as np
+import scipy
+from astropy.io import fits
+from astropy.table import Table
+from astropy.io import fits
+import matplotlib.pyplot as plt
+from astropy.table import Table
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+from astropy.cosmology import Planck18 as cosmo
+from functools import partial
+import time
+###################################################
+
+# Imports Catalog and creats a table (t_amas_match) containing Mass ('M'), redshift ('zp') and richness ('n200')
+
+
+path_halo = '/sps/lsst/groups/clusters/cluster_comparison_project/after_matching/cosmoDC2_pywazp.DC2.tpz.T500k.pointEstimateMags/zband/proximity_matching/deltaz_0.03_matchradius_1.0mpc_pref_more_massive/cat1.fits'
+
+path_amas = '/sps/lsst/groups/clusters/cluster_comparison_project/after_matching/cosmoDC2_pywazp.DC2.tpz.T500k.pointEstimateMags/zband/proximity_matching/deltaz_0.03_matchradius_1.0mpc_pref_more_massive/cat2.fits'
+
+t = Table.read(path_amas)
+
+def table(path):
+    with fits.open(path) as hdul:
+        table = Table(hdul[1].data)
+    return table
+
+t_halo = table(path_halo)
+t_amas = table(path_amas)
+t_amas_match = t_amas[t_amas["mt_cross"] !='']
+
+M = []
+for id in t_amas_match["mt_cross"]:
+    ligne = t_halo[t_halo["halo_id"] == id]
+    M.append(ligne["m200c"][0])
+t_amas_match["M"] = M
+t_amas_match = t_amas_match[t_amas_match["snr"]>6]
+
+def tableau_coupure_n200(coupure):
+    return t_amas_match[t_amas_match["n200"]>coupure]
+def tableau_bin_n200(binn):
+    a, b = binn
+    return t_amas_match[(t_amas_match["n200"]>a) & (t_amas_match["n200"]<b)]
+
+Mp, zp = 10**14.3, 0.5
+
+###################################################
