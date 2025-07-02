@@ -1,0 +1,117 @@
+# Returns a dict where res['params'] = (A, B, D, E)
+# richesse_bin and redshift_bin must be tuples with 2 int or float elements each
+def reg_lin_analysis(richesse_bin, redshift_bin):
+    #Binage
+    a, b = richesse_bin
+    c, d = redshift_bin
+    catalog = t_amas_match[(t_amas_match["n200"]>a) & (t_amas_match["n200"]<b) & (t_amas_match["zp"]>c) & (t_amas_match["zp"]<d)]
+
+    print(len(catalog))
+    
+    #Bins dans catalog pour paramétrer std(M)
+    list_bin_M = []   
+    Mi = np.logspace(np.log10(min(catalog['M'])), np.log10(max(catalog['M'])), 4)
+    for i in range(len(Mi)-1):
+        list_bin_M.append(catalog[(catalog['M']>Mi[i])&(catalog['M']<Mi[i+1])])
+    M_Mp_bin_milieu = np.array([0.5*(Mi[i+1]+Mi[i])/Mp for i in range(len(Mi)-1)])
+    
+    #Std sur ces bins
+    list_std_bin = []
+    for binage in list_bin_M:
+        list_std_bin.append(np.std(np.log(binage['n200'])))
+    
+    #Régressions linéaires (affines)
+    reg = np.polyfit(np.log(catalog['M']/Mp), np.log(catalog['n200']), 1)
+    reg_std = np.polyfit(np.log(M_Mp_bin_milieu), list_std_bin, 1)
+
+    A, B = reg[1], reg[0]
+    D, E = reg_std[1], reg_std[0]
+
+    # Generates datapoints according to the previous linear regressions
+    L = []
+    model_mean = lambda m, A, B: A+B*np.log(m/Mp)
+    model_std = lambda m, D, E: D+E*np.log(m/Mp)
+    for amas in catalog:
+        m_ = amas['M']
+        moy, std = model_mean(m_, A, B), model_std(m_, D, E)
+        L.append(np.exp(np.random.normal(moy, std, 1)[0]))
+
+    
+    res = {}
+    res['params'] = (A, B, D, E)    # Paramètres du modèle log-normal
+    res['catalog'] = catalog        # Catalogue de binné en richesse et en redshift
+    res['L_model'] = L              # Liste des richesse d'après le modèle déterminé ( L[i] <--> catalog['n200'][i] )
+    res['std'] = list_std_bin       # Liste des std pour chaque bin de masse de catalog
+    res['bins_M_std'] = M_Mp_bin_milieu  # Liste du centre des bins de masse de catalog
+    
+    return res
+
+# Shows a scatter of the binned catalog used by reg_lin_analysis and plots the regression of the mean made by reg_lin_analysis over it.
+def show_mean_reg(res, xscale = 'log', yscale = 'log', 
+                          label_data = 'data', label_reg = 'Modèle paramétré', title = '', xlabel = r'$M/ M_p$', ylabel = r'$\lambda$',
+                          data_color = 'b', reg_color = 'r', marker = '+'):
+
+    if data_color == reg_color:
+        print("WARNING : COLOR CHOICE MAY ALTER READABILITY")
+    
+    A, B, D, E = res['params']
+    catalog = res['catalog']
+    m = np.logspace(np.log10(min(catalog['M'])), np.log10(max(catalog['M'])), 10)
+    model = lambda m, A, B: np.exp(A+B*np.log(m/Mp))
+    plt.scatter(catalog["M"]/Mp, catalog["n200"],
+                marker = marker, label = label_data, color = data_color)
+    plt.plot(m/Mp, model(m, A, B),
+             color = reg_color, label = label_reg)
+    plt.title(title)
+    plt.yscale(yscale)
+    plt.xscale(xscale)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+# shows a scatter of the std of each mass bin and plots the linear regression made by reg_lin_analysis
+def show_std_reg(res, label_std = r'$\sigma(M/M_p)$', label_reg = 'Linear regression', title = '', xlabel = r'$ln(M/ M_p)$', ylabel = r'$\sigma$',
+                          std_color = 'k', reg_color = 'r'):
+    A, B, D, E = res['params']
+    std_list = res['std']
+    M_Mp_bin_milieu = res['bins_M_std']
+    plt.scatter(np.log(M_Mp_bin_milieu), std_list, 
+                color = std_color, label = label_std)
+    plt.plot([np.log(M_Mp_bin_milieu[0]), np.log(M_Mp_bin_milieu[-1])], [E*np.log(M_Mp_bin_milieu[0])+D, E*np.log(M_Mp_bin_milieu[-1])+D], 
+             color = reg_color, label = label_reg)
+    plt.grid()
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    plt.legend()
+    plt.show()
+
+# Shows 2 scatters : the binned catalog used by reg_lin_analysis and a distribution of clusters based on the regressions made by reg_lin_analysis.
+# Plus, it shows the mean regression
+def show_catalog_vs_model(res, xscale = 'log', yscale = 'log', 
+                          label_data = 'data', label_model = 'model', label_reg = 'Modèle paramétré', title = '', xlabel = r'$\lambda$', ylabel = r'$\lambda$',
+                          data_color = 'r', model_color = 'b', reg_color = 'r'):
+
+    if data_color == model_color or model_color == reg_color:
+        print("WARNING : COLOR CHOICE MAY ALTER READABILITY")
+    
+    A, B, D, E = res['params']
+    catalog = res['catalog']
+    L = res['L_model']
+    
+    m = np.logspace(np.log10(min(catalog['M'])), np.log10(max(catalog['M'])), 10)
+    model = lambda m, A, B: np.exp(A+B*np.log(m/Mp))
+
+    fig, ax = plt.subplots(1, 1, figsize=(15, 8), sharex=False, sharey=True)
+    ax.set_title(title)
+    ax.scatter(catalog["M"]/Mp, catalog["n200"], color = data_color, label = label_data)
+    ax.scatter(catalog["M"]/Mp, L, color = model_color, label = label_model)
+    ax.plot(m/Mp, model(m, A, B), color = reg_color, label = label_reg)
+    ax.set_yscale(yscale)
+    ax.set_xscale(xscale)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    ax.legend()
+    ax.grid()
+    plt.show()
