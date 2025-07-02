@@ -1,0 +1,93 @@
+##################################################################################
+mat_mean_A = np.zeros((3, 3))
+mat_std_A = np.zeros((3, 3))
+
+mat_mean_B = np.zeros((3, 3))
+mat_std_B = np.zeros((3, 3))
+
+mat_mean_D = np.zeros((3, 3))
+mat_std_D = np.zeros((3, 3))
+
+mat_mean_E = np.zeros((3, 3))
+mat_std_E = np.zeros((3, 3))
+
+
+list_bin_richesse = [(20, 35), (35, 70), (70, 100)]
+list_bin_redshift = [(0.2, 0.5), (0.5, 0.8), (0.8, 1.5)]
+
+
+# Paramétrisation par MCMC
+#####################################################################################################
+for bin_z in range(3):
+    for bin_n200 in range(3):
+        print(bin_z, bin_n200)
+        resultat = MCMC(richesse_bin = list_bin_richesse[bin_n200], 
+                        redshift_bin = list_bin_redshift[bin_z], 
+                        itt = 3000, redshift_params = False, correction = True)  # Modifier redshift_params de MCMC ici implique de modifier l'ensemble du code. Un autre code est disponible pour cela, débutant par "ABCDEF"
+        A, B, C, D, E, F = resultat['mean']
+        std_A, std_B, std_D, std_E = resultat['std']
+        
+        mat_mean_A[bin_z, bin_n200] = A
+        mat_mean_B[bin_z, bin_n200] = B
+        mat_mean_D[bin_z, bin_n200] = D
+        mat_mean_E[bin_z, bin_n200] = E
+        
+        mat_std_A[bin_z, bin_n200] = std_A
+        mat_std_B[bin_z, bin_n200] = std_B
+        mat_std_D[bin_z, bin_n200] = std_D
+        mat_std_E[bin_z, bin_n200] = std_E
+        print(bin_z, bin_n200)
+
+# Affichage
+#######################################################################################################
+bin_centers = np.array([27.5, 52.5, 85.0])
+bin_labels = ['20-35', '35-70', '70-100']
+fig, ax = plt.subplots(2, 2, figsize=(18, 8), sharex=False, sharey=False)
+x = bin_centers
+
+ax[0, 0].errorbar(x, mat_mean_A[0], yerr = mat_std_A[0], label = "0.2 < z < 0.5")
+ax[0, 0].errorbar(x, mat_mean_A[1], yerr = mat_std_A[1], label = "0.5 < z < 0.8")
+ax[0, 0].errorbar(x, mat_mean_A[2], yerr = mat_std_A[2], label = "0.8 < z < 1.5")
+ax[0, 0].set_title('A')
+ax[0, 0].set_xlabel('Bin de Richesse')
+ax[0, 0].legend()
+ax[0, 0].grid()
+# Appliquer les labels personnalisés
+ax[0, 0].set_xticks(bin_centers)
+ax[0, 0].set_xticklabels(bin_labels)
+
+ax[0, 1].errorbar(x, mat_mean_B[0], yerr = mat_std_B[0], label = "0.2 < z < 0.5")
+ax[0, 1].errorbar(x, mat_mean_B[1], yerr = mat_std_B[1], label = "0.5 < z < 0.8")
+ax[0, 1].errorbar(x, mat_mean_B[2], yerr = mat_std_B[2], label = "0.8 < z < 1.5")
+ax[0, 1].set_title('B')
+ax[0, 1].set_xlabel('Bin de Richesse')
+ax[0, 1].legend()
+ax[0, 1].grid()
+# Appliquer les labels personnalisés
+ax[0, 1].set_xticks(bin_centers)
+ax[0, 1].set_xticklabels(bin_labels)
+
+ax[1, 0].errorbar(x, mat_mean_D[0], yerr = mat_std_D[0], label = "0.2 < z < 0.5")
+ax[1, 0].errorbar(x, mat_mean_D[1], yerr = mat_std_D[1], label = "0.5 < z < 0.8")
+ax[1, 0].errorbar(x, mat_mean_D[2], yerr = mat_std_D[2], label = "0.8 < z < 1.5")
+ax[1, 0].set_title('D')
+ax[1, 0].set_xlabel('Bin de Richesse')
+ax[1, 0].legend()
+ax[1, 0].grid()
+# Appliquer les labels personnalisés
+ax[1, 0].set_xticks(bin_centers)
+ax[1, 0].set_xticklabels(bin_labels)
+
+ax[1, 1].errorbar(x, mat_mean_E[0], yerr = mat_std_E[0], label = "0.2 < z < 0.5")
+ax[1, 1].errorbar(x, mat_mean_E[1], yerr = mat_std_E[1], label = "0.5 < z < 0.8")
+ax[1, 1].errorbar(x, mat_mean_E[2], yerr = mat_std_E[2], label = "0.8 < z < 1.5")
+ax[1, 1].set_title('E')
+ax[1, 1].set_xlabel('Bin de Richesse')
+ax[1, 1].legend()
+ax[1, 1].grid()
+# Appliquer les labels personnalisés
+ax[1, 1].set_xticks(bin_centers)
+ax[1, 1].set_xticklabels(bin_labels)
+
+plt.tight_layout()
+plt.show()
