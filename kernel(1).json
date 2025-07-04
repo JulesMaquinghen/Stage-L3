@@ -1,0 +1,12 @@
+{
+ "argv": [
+  "/pbs/home/e/ebarroso/jupyter-helper.sh",
+  "-f",
+  "{connection_file}"
+ ],
+ "display_name": "Python (firecrown20.0)",
+ "language": "python",
+ "metadata": {
+  "debugger": true
+ }
+}
