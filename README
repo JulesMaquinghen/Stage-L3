@@ -1,0 +1,43 @@
+Bienvenue au Centre de Calcul de l'IN2P3.
+
+Voici quelques liens et informations importantes à connaître :
+
+* Portail des utilisateurs
+	https://portail.cc.in2p3.fr/
+
+* Documentation des services
+	https://doc.cc.in2p3.fr/
+
+* Charte de bon usage des ressources informatiques :
+	https://atrium.in2p3.fr/nuxeo/nxdoc/default/f94b7fcd-1d4f-4b63-85e5-5b102ba80333/view_documents
+
+* Pour changer de mot de passe, veuillez utiliser la commande `kpasswd`, ou la commande `laboinfo -p password -u <login>`
+  pour connaitre les personnes autorisées à réinitialiser votre mot de passe en cas d'oubli.
+
+* Pour changer votre shell, veuillez utiliser la commande: `changesh`
+
+* En cas de problème ou pour toute question, veuillez contacter le support utilisateurs :
+	https://support.cc.in2p3.fr
+
+==============================================================================
+
+Welcome to the IN2P3 Computing Centre.
+
+Here are some useful links and information to know:
+
+* User portal
+	https://portail.cc.in2p3.fr/
+
+* Service documentation
+	https://doc.cc.in2p3.fr
+
+* Charter of computing resource usage good practices:
+	https://atrium.in2p3.fr/nuxeo/nxdoc/default/f94b7fcd-1d4f-4b63-85e5-5b102ba80333/view_documents
+
+* To change your password, please run the `kpasswd` command, or `laboinfo -p password -u <login>` 
+  to know the list of persons entitled to reset your password in case you forget it.
+
+* To change your shell, please use the `changesh` command.
+
+* In case of problem or for any question, please contact the user support:
+	https://support.cc.in2p3.fr
